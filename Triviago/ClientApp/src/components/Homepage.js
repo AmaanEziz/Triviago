@@ -27,7 +27,7 @@ export function Homepage() {
 
         <body>
             <div class="d-flex justify-content-around">
-                <button>Start Solo Game</button>
+                <button onClick={() => {history.push('/soloPlay') }}>Start Solo Game</button>
                 <button>Start multiplayer game</button>
                 <div>Your high score: {highscore} </div>
                

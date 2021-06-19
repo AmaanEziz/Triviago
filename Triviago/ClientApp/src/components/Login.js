@@ -24,7 +24,7 @@ export function Login() {
                     setErrorMessage("Invalid Credentials")
                 }
                 else {
-                    history.push('/homepage')
+                    history.push('/')
                 }
             }).catch(err => { console.log(err) })
 
@@ -50,7 +50,7 @@ export function Login() {
                         <button id="submit" href="#" onClick={(e) => { handleSubmit(e) }}>SIGN UP</button>
 
                     </div>
-                    <Link to="/Register"><a>Don't have an account? Sign In</a></Link>
+                    <Link to="/Register">Don't have an account? Sign In</Link>
 
                 </form>
 

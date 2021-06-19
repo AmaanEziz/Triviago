@@ -32,9 +32,9 @@ namespace Triviago.Controllers
                 userSessions foundSession = _db.UserSessions.SingleOrDefault(u => u.SID == SID); //Find session associated with SID
                 string username = foundSession.username; //find username associated with SID
                 User userWithSID = _db.Users.SingleOrDefault(u => u.username == username);// find User associated with username
-                if (foundSession.IPAddress!= Request.HttpContext.Connection.RemoteIpAddress)
+                if (foundSession.IPAddress.ToString()!= Request.HttpContext.Connection.RemoteIpAddress.ToString())
                 {
-                    return null;// This protects session hijacking because whoever is using the session
+                    return new JsonResult(null);// This protects session hijacking because whoever is using the session
                                 //must have the IP Address the session was created with or else, null is returned
                 }
                 return new JsonResult(userWithSID);//Return user associated with SID
