@@ -17,6 +17,7 @@ export function Homepage() {
                     console.log(user)
                     setUsername(user.username);
                     setHighscore(user.highScore)
+                   
                 }
             })
         })

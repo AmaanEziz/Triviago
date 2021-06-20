@@ -45,19 +45,7 @@ namespace Triviago.Controllers
             }
         }
 
-/*
-        [HttpGet]
-        [Route("[action]")]
-        public JsonResult getUserInformation()
-        {
-           int SID = int.Parse(Request.Cookies["SID"]);
-            string username = _db.UserSessions.SingleOrDefault(u => u.SID==SID).username;
-            User userWithSID = _db.Users.SingleOrDefault(u => u.username == username);
-            Console.WriteLine(userWithSID);
-            return new JsonResult("Hello");
-           
-            
-        } */
+
         // POST api/<AuthenticationAuthorizationController>
         [HttpPost]
         public StatusCodeResult Post([FromBody] User newUser)//Register a new user
@@ -107,9 +95,21 @@ namespace Triviago.Controllers
         }
 
         // PUT api/<AuthenticationAuthorizationController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        [HttpPut]
+        public JsonResult Put(User body)
         {
+           
+          try
+            {
+                User user = _db.Users.SingleOrDefault(u => u.username == body.username);
+                user.highScore = body.highScore;
+                _db.SaveChanges();
+                return new JsonResult("success");
+           }
+            catch (Exception e)
+            {
+                return new JsonResult("unsuccessful");
+            }
         }
 
         // DELETE api/<AuthenticationAuthorizationController>/5
