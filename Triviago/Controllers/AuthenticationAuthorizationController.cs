@@ -113,9 +113,20 @@ namespace Triviago.Controllers
         }
 
         // DELETE api/<AuthenticationAuthorizationController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        [HttpDelete]
+        public StatusCodeResult Delete(int id)
         {
+            try
+            {
+                int SID = int.Parse(Request.Cookies["SID"]);
+                _db.Remove(_db.UserSessions.SingleOrDefault(u => u.SID == SID));
+                _db.SaveChanges();
+                return Ok();
+            }
+            catch(Exception e)
+            {
+                return new BadRequestResult();
+            }
         }
     }
 }
