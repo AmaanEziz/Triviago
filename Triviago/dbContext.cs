@@ -15,5 +15,16 @@ namespace Project2
         }
         public DbSet<userSessions> UserSessions { get; set; }
         public DbSet<User> Users { get; set; }
+        
+        public DbSet<GameSession> GameSessions { get; set; }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        { 
+            modelBuilder.Entity<GameSession>()
+             .Property(e => e.participants)
+             .HasConversion(
+                 v => string.Join(',', v),
+                 v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
+
+        }
     }
 }

@@ -1,7 +1,7 @@
 ﻿import React, { useEffect, useState } from 'react'
 import 'whatwg-fetch'
 import { useCookies } from 'react-cookie';
-import { Button } from 'react-bootstrap';
+import { Button, ToggleButtonGroup, ToggleButton } from 'react-bootstrap';
 import { useHistory, Link } from "react-router-dom";
 export function SoloPlay() {
     const history=useHistory()
@@ -10,37 +10,52 @@ export function SoloPlay() {
     const [username,setUsername]=useState("")
     const [givenAnswer, setGivenAnswer] = useState("")
     const [score, setScore] = useState(0);
-    const [highscore,setHighscore]=useState()
+    const [highscore, setHighscore] = useState()
+    const [allAnswers,setAllAnswers]=useState([])
     const [cookies, setCookie] = useCookies(['score']);
-    const [result, setResult] = useState("");
+    const [resultMessage, setResultMessage] = useState("");
     const [resultStyle, setResultStyle] = useState()
     const [end, setEnd] = useState(false)
+    const getShuffledArr = arr => {
+        const newArr = arr.slice()
+        for (let i = newArr.length - 1; i > 0; i--) {
+            const rand = Math.floor(Math.random() * (i + 1));
+            [newArr[i], newArr[rand]] = [newArr[rand], newArr[i]];
+        }
+        return newArr
+    };
     async function createQuestion() {
-        await fetch('https://jservice.io/api/random').then(response => {
+        await fetch('https://opentdb.com/api.php?amount=1&category=9&difficulty=medium&type=multiple').then(response => {
             response.json().then(data => {
                 setEnd(false)
-                setResult("")
-                setQuestion(data[0].question)
-                setAnswer(data[0].answer)
+                setResultMessage("")
+                console.log(data);
+                setAllAnswers(getShuffledArr([... data.results[0].incorrect_answers,data.results[0].correct_answer]))
+                setQuestion(data.results[0].question)
+                setAnswer(data.results[0].correct_answer)
                 setGivenAnswer("")
-                console.log(data[0].answer)
+                console.log(data.results[0].correct_answer)
+        
             })
         }
         )
     }
     useEffect(async () => {
         if (cookies.score) { setScore(parseInt(cookies.score)) }
-        createQuestion();
-        fetch('/api/authenticationauthorization').then((response) => {
+        await createQuestion();
+        await fetch('/api/authenticationauthorization').then((response) => {
             response.json().then(user => {
                 if (user == null) {history.push('/login')}
                 setHighscore(user.highScore)
                 setUsername(user.username)
             })
         })
+     
+        
     }, [])
-    function onInputChange(e) {
+    function onButtonClick(e) {
         setGivenAnswer(e.target.value)
+        console.log(e.target.value)
         }
 
     async function updateHighscore() {
@@ -60,25 +75,25 @@ export function SoloPlay() {
         e.preventDefault();
         if (givenAnswer == answer) {
             console.log("right answer")
-            setResult("Correct! New question is loading...")
+            setResultMessage("Correct! New question is loading...")
             setResultStyle({ color: "green" })
             setScore(prevScore => prevScore + 1)
             setCookie('score', (score + 1), { path: '/' })
             setTimeout(() => {
                 createQuestion();
-                setResult("");
+                setResultMessage("");
             }, 3000);
         }
         else {
-            setResult("Incorrect!")
+            setResultMessage("Incorrect!")
             setCookie('score',0, { path: '/' })
             setTimeout(() => {
                 if (score > highscore) {
                     updateHighscore();
-                    setResult("You have reached the end of your solo play. Your new high score is " + score+".")
+                    setResultMessage("You have reached the end of your solo play. Your new high score is " + score+".")
                 }
                 else {
-                    setResult("You have reached the end of your solo play.")
+                    setResultMessage("You have reached the end of your solo play.")
                 }
              
                 setEnd(true)
@@ -91,21 +106,34 @@ export function SoloPlay() {
     }
     return (
         <body>
+            
             <div>Current Score: {score}</div>
-            <div style={resultStyle}>{result}</div>
+            <div style={resultStyle}>{resultMessage}</div>
             { !end ?
                 <>
             {question}
            
                 <form onSubmit={onSubmit}>
                     <label>
-                        Answer:
-          <textarea value={givenAnswer} onChange={onInputChange} />        </label>
-                    {result != "" ? <></> : <input type="submit" value="Submit" />}
+                            Answer:
+                             
+                             
+                            <ToggleButtonGroup type="radio" name="options" defaultValue={1}>
+                                
+                                    {allAnswers.map(answer => (
+                                        <ToggleButton value={answer} onClick={onButtonClick}>{answer}</ToggleButton>
+                                    ))
+                                    }
+                               
+                               
+                            </ToggleButtonGroup>
+                        </label>
+                    {resultMessage != "" ? <></> : <input type="submit" value="Submit" />}
 
                 </form>
                  </>
-                : <> <Button onClick={createQuestion}>Restart Solo Play</Button><a href="/"><Button>Go back to homepage</Button></a></>}
+                    : <> <Button onClick={createQuestion}>Restart Solo Play</Button><a href="/"><Button>Go back to homepage</Button></a></>}
+            
         </body>
     )
 }
