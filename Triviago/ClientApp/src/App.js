@@ -6,6 +6,7 @@ import { Login } from './components/Login';
 import { Homepage } from './components/Homepage';
 import { SoloPlay } from './components/SoloPlay';
 import { MultiplayerLobby } from './components/MultiplayerLobby'
+import { GameSession } from './components/GameSession'
 export default class App extends Component {
   static displayName = App.name;
 
@@ -16,7 +17,9 @@ export default class App extends Component {
             <Route exact path='/' component={Homepage} />
             <Route exact path='/Login' component={Login} />
             <Route exact path="/SoloPlay" component={SoloPlay} />
-            <Route exact path="/MultiplayerLobby" component={MultiplayerLobby}/>
+            <Route exact path="/MultiplayerLobby" component={MultiplayerLobby} />
+            <Route path="/GameSession/:gameSID" component={GameSession}/>
+                
       </>
     );
   }

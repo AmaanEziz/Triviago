@@ -3,6 +3,9 @@ import 'whatwg-fetch'
 import { useCookies } from 'react-cookie';
 import { Button, ToggleButtonGroup, ToggleButton } from 'react-bootstrap';
 import { useHistory, Link } from "react-router-dom";
+
+
+
 export function SoloPlay() {
     const history=useHistory()
     const [question, setQuestion] = useState("")
@@ -40,7 +43,10 @@ export function SoloPlay() {
         }
         )
     }
+
+
     useEffect(async () => {
+        
         if (cookies.score) { setScore(parseInt(cookies.score)) }
         await createQuestion();
         await fetch('/api/authenticationauthorization').then((response) => {
@@ -54,6 +60,7 @@ export function SoloPlay() {
         
     }, [])
     function onButtonClick(e) {
+         e.preventDefault()
         setGivenAnswer(e.target.value)
         console.log(e.target.value)
         }

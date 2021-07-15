@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Project2;
+using Triviago.Hubs;
 
 namespace Triviago
 {
@@ -24,6 +25,8 @@ namespace Triviago
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSignalR();
+            
             services.AddCors(options =>
             {
                 options.AddDefaultPolicy(
@@ -78,10 +81,12 @@ namespace Triviago
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapHub<MultiplayerHubs>("/hubs/gameSession");
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller}/{action=Index}/{id?}");
-            });
+            }
+            );
 
             app.UseSpa(spa =>
             {

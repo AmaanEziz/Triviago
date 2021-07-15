@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,15 +16,14 @@ namespace Project2
         }
         public DbSet<userSessions> UserSessions { get; set; }
         public DbSet<User> Users { get; set; }
-        
-        public DbSet<GameSession> GameSessions { get; set; }
+
+        public DbSet<gameSession> GameSessions { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
-        { 
-            modelBuilder.Entity<GameSession>()
-             .Property(e => e.participants)
-             .HasConversion(
-                 v => string.Join(',', v),
-                 v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
+        {
+            modelBuilder.Entity<gameSession>().Property(p => p.participants)
+     .HasConversion(
+         v => JsonConvert.SerializeObject(v),
+         v => JsonConvert.DeserializeObject<List<string>>(v));
 
         }
     }

@@ -29,7 +29,7 @@ export function Register() {
         }).then(response => {
             if (response.status === 200) {
                 console.log("success occured")
-                history.push('/homepage');
+                history.push('/');
 
             }
             else {

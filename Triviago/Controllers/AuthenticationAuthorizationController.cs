@@ -4,7 +4,10 @@ using Newtonsoft.Json;
 using Project2;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
+using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -93,6 +96,29 @@ namespace Triviago.Controllers
                 return new JsonResult(null);
             }
         }
+
+
+
+
+        [HttpPost]
+        [Route("[action]")]
+        public async Task<string> testParameters()//Locate user with given credentials and create a new session for them
+        {
+            string jsonString="still awaiting";
+            using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8))
+            {
+                jsonString = await reader.ReadToEndAsync();
+            }
+            return jsonString;
+        }
+
+
+
+
+
+
+
+
 
         // PUT api/<AuthenticationAuthorizationController>/5
         [HttpPut]

@@ -2,6 +2,7 @@
 import 'whatwg-fetch'
 import { useHistory } from "react-router-dom";
 import { useCookies } from 'react-cookie';
+
 export function Homepage() {
  
     const [username, setUsername] = useState("");
@@ -9,6 +10,23 @@ export function Homepage() {
     const [cookies, setCookie] = useCookies(['SID']);
 
     const history = useHistory();
+
+     function createGame() {
+        let data = { host: username, name: "test name", participants: [username], inSession:false}
+        fetch('/api/gamesessions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        }).then(async res => {
+            let json = await res.json();
+            console.log(json)
+           
+                history.push('/GameSession/'+json.id)
+            
+        })
+    }
    async function logout() {
         await fetch('/api/authenticationauthorization', {
             method: 'DELETE',
@@ -48,10 +66,10 @@ export function Homepage() {
             <div class="d-flex justify-content-around">
                 <button onClick={() => {history.push('/soloPlay') }}>Start Solo Game</button>
                 <button onClick={() => { history.push('/MultiplayerLobby') }}>Join multiplayer game</button>
+                <button onClick={createGame}>Create Multiplayer Game</button>
                 <div>Your high score: {highscore} </div>
                 <button onClick={logout}>Logout</button>
             </div>
-         
         </body>
     )
 }
