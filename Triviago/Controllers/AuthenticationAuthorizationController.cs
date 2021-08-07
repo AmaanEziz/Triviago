@@ -35,16 +35,11 @@ namespace Triviago.Controllers
                 userSessions foundSession = _db.UserSessions.SingleOrDefault(u => u.SID == SID); //Find session associated with SID
                 string username = foundSession.username; //find username associated with SID
                 User userWithSID = _db.Users.SingleOrDefault(u => u.username == username);// find User associated with username
-                if (foundSession.IPAddress.ToString()!= Request.HttpContext.Connection.RemoteIpAddress.ToString())
-                {
-                    return new JsonResult(null);// This protects session hijacking because whoever is using the session
-                                //must have the IP Address the session was created with or else, null is returned
-                }
                 return new JsonResult(userWithSID);//Return user associated with SID
             }
             catch (Exception e)
             {
-                return new JsonResult(null);// Return null if SID is invalid
+                return new JsonResult(null);
             }
         }
 
@@ -82,7 +77,7 @@ namespace Triviago.Controllers
                     return new JsonResult(null);//If credentials don't match a user, return null
                 }
 
-                userSessions newSession = new userSessions(user.username, foundUser.GetHashCode(), Request.HttpContext.Connection.RemoteIpAddress);
+                userSessions newSession = new userSessions(user.username, foundUser.GetHashCode());
                _db.UserSessions.Add(newSession);
                _db.SaveChanges();
                 CookieOptions option = new CookieOptions(); //Set up the session cookie
@@ -98,18 +93,14 @@ namespace Triviago.Controllers
         }
 
 
-
-
-        [HttpPost]
-        [Route("[action]")]
-        public async Task<string> testParameters()//Locate user with given credentials and create a new session for them
+        [HttpPut]
+        [Route("/{username}/[action]")]
+        public int addGameWon(string username)//Locate user with given credentials and create a new session for them
         {
-            string jsonString="still awaiting";
-            using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8))
-            {
-                jsonString = await reader.ReadToEndAsync();
-            }
-            return jsonString;
+            User user = _db.Users.SingleOrDefault(u => u.username == username);
+            user.gamesWon = user.gamesWon + 1;
+           return _db.SaveChanges();
+           
         }
 
 

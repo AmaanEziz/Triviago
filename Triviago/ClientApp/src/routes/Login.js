@@ -6,13 +6,13 @@ export function Login() {
     const passwordRef = useRef()
     const [errorMessage, setErrorMessage] = useState("")
     const history = useHistory();
-    async function handleSubmit(event) {
+   function handleSubmit(event) {
         event.preventDefault();
         let data = {
             username: usernameRef.current.value,
             password: passwordRef.current.value
         }
-        await fetch('/api/authenticationauthorization/LoginRequest', {
+       fetch('/api/authenticationauthorization/LoginRequest', {//Post request to create a user session
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -33,9 +33,9 @@ export function Login() {
     }
 
     return (
-        <body id="body">
+        <body >
 
-            <div style={{ margin: "auto", maxWidth: "50vw", minHeight: "90vh", border: "1px solid gray", boxShadow: "0 0 10px #9ecaed" }}>
+            <div style={{textAlign:"center", margin: "auto",  marginTop:"3rem",maxWidth: "50vw", minHeight: "70vh", border: "1px solid gray", boxShadow: "0 0 10px #9ecaed" }}>
                 <h2 style={{ margin: "auto" }}>Triviago</h2>
                 <h4>Sign In</h4>
                 <form id="signup">
@@ -44,13 +44,14 @@ export function Login() {
 
                     <div class="inputs">
 
-                        <input ref={usernameRef} type="text" name="username" id="username" placeholder="Username" autofocus />
+                        <input style={{ width: "100%" }} ref={usernameRef} type="text" name="username" id="username" placeholder="Username" autofocus/>
 
-                        <input ref={passwordRef} type="password" name="password" id="password" placeholder="Password" />
-                        <button id="submit" href="#" onClick={(e) => { handleSubmit(e) }}>SIGN UP</button>
+                        <input style={{ width: "100%" }} ref={passwordRef} type="password" name="password" id="password" placeholder="Password" />
+                        <i class="bi bi-eye-slash" id="togglePassword"></i>
+                        <button id="submit" onClick={(e) => { handleSubmit(e) }}>SIGN IN</button>
 
                     </div>
-                    <Link to="/Register">Don't have an account? Sign In</Link>
+                    <Link to="/Register">Don't have an account? Sign Up</Link>
 
                 </form>
 

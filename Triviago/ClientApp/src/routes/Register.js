@@ -8,11 +8,15 @@ export function Register() {
     const passwordRef = useRef();
     const [errorMessage, setErrorMessage] = useState("")
     const history = useHistory();
-    async function handleSubmit(event) {
+    function handleSubmit(event) {
         event.preventDefault();
         console.log("button hit")
-        if (passwordRef.current.value !== verifiedPasswordRef.current.value) {
+        if (passwordRef.current.value !== verifiedPasswordRef.current.value) {//Make sure passwords equal each other
             setErrorMessage("Passwords do not match");
+            return;
+        }
+        if (!usernameRef.current.value || !passwordRef.current.value || !verifiedPasswordRef.current.value) {//No blank fields allowed
+            setErrorMessage("Please fill out all 3 fields")
             return;
         }
         let data = {
@@ -20,7 +24,7 @@ export function Register() {
             password: passwordRef.current.value
         }
         console.log(data);
-        await fetch('/api/authenticationauthorization', {
+        fetch('/api/authenticationauthorization', {//Post a new user to the database
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -28,33 +32,30 @@ export function Register() {
             body: JSON.stringify(data)
         }).then(response => {
             if (response.status === 200) {
-                console.log("success occured")
-                history.push('/');
-
+                history.push('/')
             }
             else {
-                console.log("failure occured")
                 setErrorMessage("Username already taken")
             }
         })
     }
 
     return (
-        <body id="body">
+        <body>
 
-            <div style={{ margin: "auto", maxWidth: "50vw", minHeight: "90vh", border: "1px solid gray", boxShadow: "0 0 10px #9ecaed" }}>
+            <div style={{ textAlign: "center", margin:"auto", marginTop:"3rem",maxWidth: "50vw", minHeight: "70vh", border: "1px solid gray", boxShadow: "0 0 10px #9ecaed" }}>
                 <h2 style={{ margin: "auto" }}>Triviago</h2>
                 <h4>Create An Account</h4>
                 <form id="signup">
                     <div class="sep"></div>
                     <div style={{ color: "red" }}>{errorMessage}</div>
 
-                    <div class="inputs">
+                    <div class="inputs" >
 
-                        <input ref={usernameRef} type="text" name="username" id="username" placeholder="Username" autofocus />
+                        <input style={{ width: "100%" }} ref={usernameRef} type="text" name="username" id="username" placeholder="Username" autofocus />
 
-                        <input ref={passwordRef} type="password" name="password" id="password" placeholder="Password" />
-                        <input ref={verifiedPasswordRef} type="password" placeholder="Verify Password" />
+                        <input style={{ width: "100%" }} ref={passwordRef} type="password" name="password" id="password" placeholder="Password" />
+                        <input style={{ width: "100%" }} ref={verifiedPasswordRef} type="password" placeholder="Verify Password" />
 
 
                         <button id="submit" href="#" onClick={(e) => { handleSubmit(e) }}>SIGN UP</button>

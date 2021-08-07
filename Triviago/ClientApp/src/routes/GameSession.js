@@ -4,19 +4,22 @@ import { useBeforeunload } from 'react-beforeunload';
 import { useHistory, Prompt } from "react-router-dom";
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import { Button, ToggleButtonGroup, ToggleButton } from 'react-bootstrap';
-
+import { GetShuffledArr } from '../logicComponents/GetShuffledArr.js'
+import { GetUser } from '../logicComponents/GetUser'
 
 
 const connection = new HubConnectionBuilder()
     .withUrl("/hubs/gameSession/")
     .configureLogging(LogLevel.Information)
     .build()
-let username = 0;
-let answer = ""
-let givenAnswer = ""
-let hostName=""
+var username = 0;
+var answer = ""
+var givenAnswer = ""
+var hostName = ""
+var highScore = 0
+
 export function GameSession(props) {
-    
+
     const [isHost,setIsHost]=useState(false)
     const [isInProgress, setIsInProgress] = useState(false)
     const [endPlay,setEndPlay]=useState(false)
@@ -30,21 +33,11 @@ export function GameSession(props) {
     const [loaded,setLoaded]=useState(false)
     const [gameNotFound,setGameNotFound]=useState()
     const [failedConnect,setFailedConnect]=useState(false)
-
-
-   
+    const [score, setScore]=useState(0)
 
    
 
-
-    const getShuffledArr = arr => {
-        const newArr = arr.slice()
-        for (let i = newArr.length - 1; i > 0; i--) {
-            const rand = Math.floor(Math.random() * (i + 1));
-            [newArr[i], newArr[rand]] = [newArr[rand], newArr[i]];
-        }
-        return newArr
-    };
+   
 
 
 
@@ -95,21 +88,17 @@ export function GameSession(props) {
 
 
 
-    function onButtonClick(e,option) {
+    function onButtonClick(e) {
         e.preventDefault()
-        givenAnswer = option;
+        givenAnswer = e.target.value
       
     }
 
     function compareAnswers() {
         if (answer != givenAnswer) {
+            connection.invoke("removePlayer", gameSID, username).catch(() => {})
             if (username == hostName) {
-                connection.invoke("removePlayer", gameSID, username)
                 setTimeout(() => { connection.invoke("hostMigration", gameSID) }, 2000)
-
-            }
-            else {
-                connection.invoke("removePlayer", gameSID, username)
 
             }
             
@@ -125,7 +114,7 @@ export function GameSession(props) {
                 console.log(response)
                 compareAnswers();
                 let data = JSON.parse(response)
-                setAllAnswers(getShuffledArr([...data.results[0].incorrect_answers, data.results[0].correct_answer]))
+                setAllAnswers(GetShuffledArr([...data.results[0].incorrect_answers, data.results[0].correct_answer]))
                 setQuestion(data.results[0].question)
                 setTimeout(() => { answer = data.results[0].correct_answer},3000)
                 
@@ -184,8 +173,25 @@ export function GameSession(props) {
     }
 
 
+    async function updateHighScore() {
+        let data = { highScore: score, username: username }
+        await fetch('/api/authenticationauthorization', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        }).then(res => {
+            res.json().then(json => { console.log(json) })
+        })
+    }
+
+
     useEffect(() => {
         if (isInProgress) {
+            if (score > highScore) {
+                updateHighScore()
+            }
             setTimeout(() => {
                 history.push('/MultiplayerLobby')
                 connection.stop()
@@ -194,6 +200,18 @@ export function GameSession(props) {
     }, [endPlay, winner])
 
 
+    useEffect(() => {
+        if (isInProgress) {
+            fetch('/' + username + "/addGameWon", {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(res => {
+                res.json().then(json => { console.log(json) })
+            })
+        }
+    }, [winner])
 
 
     useEffect(() => {
@@ -204,8 +222,12 @@ export function GameSession(props) {
 
     useEffect(() => {
         configureConnection();
-        getUserDetails();
-       
+        async function setUser() {
+            let user = await GetUser()
+            username = user.username
+            highScore=user.highScore
+        }
+       setUser()
     }, [])
 
 
@@ -270,11 +292,11 @@ export function GameSession(props) {
             {question}
             <ToggleButtonGroup name="options">
                 {allAnswers.map(option => (
-                    <ToggleButton value={option} onClick={(e) => { onButtonClick(e, option) }}>{option}</ToggleButton>
-                   
-            
+                    <ToggleButton value={option} onChange={onButtonClick}>{option}</ToggleButton>
+
+
                 ))}
-                </ToggleButtonGroup>
+            </ToggleButtonGroup>
         </div>)
     }
   

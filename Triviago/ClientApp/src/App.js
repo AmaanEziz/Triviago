@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
 import { Route } from 'react-router';
 
-import { Register } from './components/Register';
-import { Login } from './components/Login';
-import { Homepage } from './components/Homepage';
-import { SoloPlay } from './components/SoloPlay';
-import { MultiplayerLobby } from './components/MultiplayerLobby'
-import { GameSession } from './components/GameSession'
+import { Register } from './routes/Register';
+import { Login } from './routes/Login';
+import { Homepage } from './routes/Homepage';
+import { SoloPlay } from './routes/SoloPlay';
+import { MultiplayerLobby } from './routes/MultiplayerLobby'
+import { GameSession } from './routes/GameSession'
 export default class App extends Component {
   static displayName = App.name;
 

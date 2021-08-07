@@ -14,13 +14,13 @@ namespace Triviago
         public string username { get; set; }
         public int SID{ get; set; }
 
-        public System.Net.IPAddress IPAddress { get; set; }
+     
 
-        public userSessions(string username, int SID, System.Net.IPAddress IPAddress)
+        public userSessions(string username, int SID)
         {
             this.username = username;
             this.SID = SID;
-            this.IPAddress = IPAddress;
+         
             
         }
     }

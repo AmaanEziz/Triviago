@@ -5,12 +5,10 @@ import { useCookies } from 'react-cookie';
 import {Table, Button} from 'react-bootstrap'
 export function MultiplayerLobby() {
     const [gameSessions, setGameSessions] = useState([])
-    const [cookies, setCookie] = useCookies(['gameSID']);
-
     const history = useHistory();
 
     useEffect( () => {
-        fetch("/api/gamesessions").then(res => {
+        fetch("/api/gamesessions").then(res => {// get the list of current game sessions
             console.log(res)
             res.json().then(sessionsArr => {
                 console.log(sessionsArr)
@@ -25,7 +23,7 @@ export function MultiplayerLobby() {
         <body>
             <Table striped bordered hover>
                 <thead>
-                    <tr>
+                    <tr style={{ textAlign: "center" }}>
                         <th>ID</th>
                         <th>Host</th>
                         <th>Game Name</th>
@@ -36,7 +34,7 @@ export function MultiplayerLobby() {
                 <tbody>
                     {gameSessions.map(session => (
                      
-                        <tr>
+                        <tr style={{ textAlign: "center" }}>
                             <td>{session.id}</td>
                             <td>{session.host}</td>
                             <td>{session.name}</td>

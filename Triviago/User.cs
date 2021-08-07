@@ -15,6 +15,7 @@ namespace Triviago
 
         public int highScore { get; set; }
 
+        public int gamesWon { get; set; }
    
 
     }

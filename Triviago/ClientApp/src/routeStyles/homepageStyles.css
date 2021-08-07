@@ -1,0 +1,45 @@
+﻿html {
+    font-size:calc(12px + 1vw);
+}
+
+body {
+    background-color: #f8f9d2;
+    background-image: linear-gradient(315deg, #f8f9d2 0%, #e8dbfc 74%);
+  
+}
+
+#topPortion{
+  margin-top:2rem;
+  align-content:center;
+  margin-bottom:6rem;
+}
+
+#bottomPortion {
+
+    align-content: center;
+}
+
+.btn{
+    height:2rem;
+    min-height:50px;
+  
+}
+
+#scoreBanner,#gamesBanner {
+   width:10rem;
+}
+
+#gamesBanner{
+    color:white;
+}
+.cardContent {
+    display: flex;
+    justify-content: center;
+    align-content:center;
+}
+
+.stats{
+    font-size:1rem;
+    display:flex;
+    justify-content:center;
+}
