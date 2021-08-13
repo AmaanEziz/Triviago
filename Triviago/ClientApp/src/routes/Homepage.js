@@ -3,31 +3,30 @@ import { useHistory } from "react-router-dom";
 import { Button, Card } from 'react-bootstrap'
 import {NewGameModal} from './NewGameModal'
 import '../routeStyles/homepageStyles.css'
-import {GetUser} from '../logicComponents/GetUser'
+import { DeleteUserSession } from '../CrudFunctions/Delete/DeleteUserSession'
+import { GetUser } from '../CrudFunctions/Read/GetUser';
 export function Homepage() {
  
     const [user, setUser] = useState({username:"",highScore:0,gamesWon:0})
-    const [show,setShow]=useState(false)
+    const [show, setShow] = useState(false)
+    const [logoutFailed,setLogoutFailed]=useState(false)
     const history=useHistory()
 
-    function logout() {
+    async function logout() {
 
-        //Deletes SID cookie
+        let logoutRequest = await DeleteUserSession()
 
-       fetch('/api/authenticationauthorization', {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify()
-        }).then(res => {
-            if (res.status == 200) {
-                console.log("logout success")
-                history.push('/login')
-            }
-           
-        })
-        document.cookie = "SID=; expires=Thu, 18 Dec 2013 12:00:00 UTC; path=/";
+
+        if (logoutRequest.status == 200) {
+            document.cookie = "SID=; expires=Thu, 18 Dec 2013 12:00:00 UTC; path=/"
+            history.push('/login')
+        }
+        else {
+            setLogoutFailed(true)
+        }
+
+
+        
     }
     useEffect( () => {// Get user's information from DB
         async function setUserState() {
@@ -66,6 +65,9 @@ export function Homepage() {
                     </Card.Body>
                 </Card>
                 <Button variant="dark" onClick={logout}>Logout</Button>
+                {logoutFailed ? <div>Logout request failed. Please try again or leave page. </div> :
+                    <></>
+}
             </div>
         </body>
     )

@@ -1,6 +1,5 @@
 import React, { useRef, useState } from 'react'
-import 'whatwg-fetch'
-
+import {PostUser} from '../CrudFunctions/Create/PostUser'
 import { useHistory, Link } from "react-router-dom";
 export function Register() {
     const verifiedPasswordRef = useRef();
@@ -8,9 +7,10 @@ export function Register() {
     const passwordRef = useRef();
     const [errorMessage, setErrorMessage] = useState("")
     const history = useHistory();
-    function handleSubmit(event) {
-        event.preventDefault();
-        console.log("button hit")
+    async function handleSubmit(e) {
+
+        e.preventDefault();
+
         if (passwordRef.current.value !== verifiedPasswordRef.current.value) {//Make sure passwords equal each other
             setErrorMessage("Passwords do not match");
             return;
@@ -19,25 +19,17 @@ export function Register() {
             setErrorMessage("Please fill out all 3 fields")
             return;
         }
-        let data = {
-            username: usernameRef.current.value,
-            password: passwordRef.current.value
+
+
+        let postResponse = await PostUser(usernameRef.current.value, passwordRef.current.value)
+        if (postResponse.status == 200) {
+            history.push('/login')
         }
-        console.log(data);
-        fetch('/api/authenticationauthorization', {//Post a new user to the database
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        }).then(response => {
-            if (response.status === 200) {
-                history.push('/')
-            }
-            else {
-                setErrorMessage("Username already taken")
-            }
-        })
+        else {
+            setErrorMessage("Username already taken. Please try again.")
+        }
+      
+     
     }
 
     return (

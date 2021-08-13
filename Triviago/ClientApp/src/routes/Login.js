@@ -1,35 +1,26 @@
 ﻿import React, { useRef, useState } from 'react'
 import 'whatwg-fetch'
 import { useHistory, Link } from "react-router-dom";
+import { PostUserSession } from '../CrudFunctions/Create/PostUserSession';
 export function Login() {
     const usernameRef = useRef();
     const passwordRef = useRef()
     const [errorMessage, setErrorMessage] = useState("")
     const history = useHistory();
-   function handleSubmit(event) {
-        event.preventDefault();
-        let data = {
-            username: usernameRef.current.value,
-            password: passwordRef.current.value
-        }
-       fetch('/api/authenticationauthorization/LoginRequest', {//Post request to create a user session
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        }).then(async res => {
-            res.json().then(SID => {
-                if (SID == null) {
-                    setErrorMessage("Invalid Credentials")
-                }
-                else {
-                    history.push('/')
-                }
-            }).catch(err => { console.log(err) })
+    async function handleSubmit(e) {
 
-           
-        })
+        e.preventDefault();
+
+       let postedUserSession = await PostUserSession(usernameRef.current.value, passwordRef.current.value)
+       if (postedUserSession == null) {
+           setErrorMessage("Invalid Credentials")
+       }
+       else {
+           history.push('/')
+       }
+
+
+
     }
 
     return (

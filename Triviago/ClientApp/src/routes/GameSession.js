@@ -1,12 +1,14 @@
 ﻿import React, { useEffect, useState, useRef } from 'react'
-import 'whatwg-fetch'
 import { useBeforeunload } from 'react-beforeunload';
 import { useHistory, Prompt } from "react-router-dom";
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
-import { Button, ToggleButtonGroup, ToggleButton } from 'react-bootstrap';
-import { GetShuffledArr } from '../logicComponents/GetShuffledArr.js'
-import { GetUser } from '../logicComponents/GetUser'
-
+import {ToggleButtonGroup, ToggleButton } from 'react-bootstrap';
+import { GetUser } from '../CrudFunctions/Read/GetUser'
+import { GetGameSession } from '../CrudFunctions/Read/GetGameSession'
+import {UpdateHighScore } from '../CrudFunctions/Update/UpdateHighScore'
+import { DeleteGameSession } from '../CrudFunctions/Delete/DeleteGameSesson.js';
+import { GetShuffledArr } from '../CrudFunctions/Read/GetShuffledArr';
+import { UpdateGamesWon } from '../CrudFunctions/Update/UpdateGamesWon';
 
 const connection = new HubConnectionBuilder()
     .withUrl("/hubs/gameSession/")
@@ -35,76 +37,60 @@ export function GameSession(props) {
     const [failedConnect,setFailedConnect]=useState(false)
     const [score, setScore]=useState(0)
 
-   
+
+
+    window.addEventListener('popstate', onLeave, false);
+
+    useBeforeunload(onLeave)
 
    
 
 
 
 
-       function getUserDetails() {
-         fetch('/api/authenticationauthorization').then(response => {
-            response.json().then(user => {
-                if (user == null) {
-                    history.push('/login')
-                }
-                else {
-                 username=user.username;
-                }
-
-            })
-        })
-    }
-   function getGameSessionDetails() {
-        fetch('/api/gamesessions/' + gameSID).then(response => {
-            response.json().then(session => {
-                console.log("host is " + session.host)
-                console.log("you are " + username)
-                console.log("is host equal to you" + (session.host == username))
-                hostName= session.host
-                console.log("onload, the host for the game is "+session.host)
-                if (session.host == username) {
-                    setIsHost(true)
-                }
-                setIsInProgress(session.inSession)
-                setActivePlayers(session.participants)
-            }).catch(() => { setGameNotFound(true) })
-        })
+    async function getGameSessionDetails() {
+        let gameSession = await GetGameSession(gameSID)
+        console.log(gameSession)
+        if (gameSession == null) { setGameNotFound(true) }
+        else {
+            if (gameSession.participants.length == 0) {
+                deleteGame()
+                return
+            }
+            hostName = gameSession.host
+            if (username == hostName) {
+                setIsHost(true)
+            }
+            console.log("the host is "+hostName)
+            setIsInProgress(gameSession.inSession)
+            setActivePlayers(gameSession.participants)
+        }
     }
 
     async function deleteGame() {
 
-        await fetch('/api/gamesessions/' + gameSID, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
+       DeleteGameSession(gameSID)
 
     }
 
 
-
-
-
-
-    function onButtonClick(e) {
-        e.preventDefault()
-        givenAnswer = e.target.value
-      
-    }
 
     function compareAnswers() {
         if (answer != givenAnswer) {
-            connection.invoke("removePlayer", gameSID, username).catch(() => {})
+            connection.invoke("removePlayer", gameSID, username).catch(() => { })
             if (username == hostName) {
                 setTimeout(() => { connection.invoke("hostMigration", gameSID) }, 2000)
 
             }
-            
+
             setEndPlay(true)
         }
+        else {
+            setScore(score+1)
+        }
     }
+
+
 
     function configureConnection() {
         connection.start().then(() => {
@@ -163,34 +149,68 @@ export function GameSession(props) {
 
         connection.on("playerRemoved", async (removedUser,newPlayerList) => {
             setActivePlayers(newPlayerList)
-            if (newPlayerList.length <2) {
+            if (newPlayerList.length <2 && isInProgress) {
                 setWinner(true)
             }
             console.log(removedUser+" was removed and the new player list is "+newPlayerList)
         })
-        }).catch(exception => {setFailedConnect(true)})
+        }).catch(e => {setFailedConnect(true)})
     
     }
 
-
-    async function updateHighScore() {
-        let data = { highScore: score, username: username }
-        await fetch('/api/authenticationauthorization', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        }).then(res => {
-            res.json().then(json => { console.log(json) })
-        })
+    function onLeave() {
+        if (activePlayers.length == 1) {
+            deleteGame()
+        }
+        else { //Else statement in case player leaving is NOT the last player
+            connection.invoke("removePlayer", gameSID, username).catch(e => { })
+            if (username == hostName) {
+                setTimeout(() => {
+                    connection.invoke("hostMigration", gameSID).catch(e => { })
+                }, 2000)
+            }
+        }
+        connection.stop().catch(() => { })
     }
+
+    function onButtonClick(e) {
+        e.preventDefault()
+        givenAnswer = e.target.value
+
+    }
+
+    useEffect(() => {
+        configureConnection();
+        async function setUser() {
+            let user = await GetUser(history)
+            username = user.username
+            highScore = user.highScore
+        }
+        setUser()
+    }, [])
+
+
+    useEffect(() => {
+        if (username) {
+            getGameSessionDetails();
+        }
+    }, [username])
+
+
+
+    useEffect(() => {
+        if (activePlayers.length < 2 && isInProgress) {
+            deleteGame()
+        }
+    }, [activePlayers])
+
+
 
 
     useEffect(() => {
         if (isInProgress) {
             if (score > highScore) {
-                updateHighScore()
+                UpdateHighScore(score)
             }
             setTimeout(() => {
                 history.push('/MultiplayerLobby')
@@ -202,43 +222,11 @@ export function GameSession(props) {
 
     useEffect(() => {
         if (isInProgress) {
-            fetch('/' + username + "/addGameWon", {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }).then(res => {
-                res.json().then(json => { console.log(json) })
-            })
+            UpdateGamesWon()
         }
     }, [winner])
 
 
-    useEffect(() => {
-        if (activePlayers.length < 2 && isInProgress) {
-            deleteGame()
-        }
-    },[activePlayers])
-
-    useEffect(() => {
-        configureConnection();
-        async function setUser() {
-            let user = await GetUser()
-            username = user.username
-            highScore=user.highScore
-        }
-       setUser()
-    }, [])
-
-
-
-
-
-    useEffect(() => {
-        if (username) {
-            getGameSessionDetails();
-        }
-    }, [username])
 
 
     useEffect(() => {
@@ -251,6 +239,7 @@ export function GameSession(props) {
         }, 3000)
            
     }, [configured])
+
 
 
 

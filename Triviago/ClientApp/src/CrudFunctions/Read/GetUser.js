@@ -3,7 +3,7 @@ export async function GetUser(history) {
 
 
     
-    let fetchResponse = await fetch('/api/authenticationauthorization')
+    let fetchResponse = await fetch('/api/user')
     let user = await fetchResponse.json()
     if (user == null) {
         history.push('/login')

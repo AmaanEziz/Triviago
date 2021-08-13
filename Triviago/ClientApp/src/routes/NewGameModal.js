@@ -2,30 +2,24 @@
 import {Modal, Button} from 'react-bootstrap'
 import 'whatwg-fetch'
 import { useHistory } from "react-router-dom";
+import { PostGameSession } from '../CrudFunctions/Create/PostGameSession';
+
 export function NewGameModal({ show, setShow, username }) {
     const nameRef = useRef()
 
-    function handleClose() { setShow(false)  }
     const history=useHistory()
 
-    function createGame() {//creates multiplayer game for user and takes them to the game [age]
-        let data = {
+    function handleClose() { setShow(false) }
+    async function  createGame() {//creates multiplayer game for user and takes them to the game [age]
+        let gameSession = {
             host: username, name: nameRef.current.value, participants: [username], inSession: false
         }
   
-        fetch('/api/gamesessions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        }).then(async res => {
-            let json = await res.json();
-            console.log(json)
+        let postedSession =await PostGameSession(gameSession)
+ 
+        history.push('/GameSession/' + postedSession.id)
 
-            history.push('/GameSession/' + json.id)
-
-        })
+       
     }
 
     return (

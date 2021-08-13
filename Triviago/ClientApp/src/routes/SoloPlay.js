@@ -1,17 +1,18 @@
 ﻿import React, { useEffect, useState } from 'react'
-import 'whatwg-fetch'
 import { Button, ToggleButtonGroup, ToggleButton } from 'react-bootstrap';
 import { useHistory} from "react-router-dom";
-import { useBeforeunload } from 'react-beforeunload';
-import {GetShuffledArr} from '../logicComponents/GetShuffledArr.js'
-import { GetUser } from '../logicComponents/GetUser'
+import { GetUser } from '../CrudFunctions/Read/GetUser'
+import { UpdateHighScore } from '../CrudFunctions/Update/UpdateHighScore'
+import { GetQuestionInfo } from '../CrudFunctions/Read/GetQuestionInfo'
+
+
 export function SoloPlay() {
     const [user, setUser] = useState({ username: "", highScore: 0, gamesWon: 0 })
     const history=useHistory()
     const [question, setQuestion] = useState("")
-    const [answer, setAnswer] = useState("")
+    const [correctAnswer, setCorrectAnswer] = useState("")
     const [givenAnswer, setGivenAnswer] = useState("")
-    const [score, setScore] = useState(0);
+    const [currentScore, setCurrentScore] = useState(0);
     const [allAnswers,setAllAnswers]=useState([])
     const [resultMessage, setResultMessage] = useState("");
     const [resultStyle, setResultStyle] = useState()
@@ -20,21 +21,14 @@ export function SoloPlay() {
 
 
     async function createQuestion() {//Makes request to OpentDB API to fetch question details
-        await fetch('https://opentdb.com/api.php?amount=1&category=9&type=multiple').then(response => {
-            response.json().then(data => {
-                setEnd(false)
-                setResultMessage("")
-                console.log(data);
-               setAllAnswers(GetShuffledArr([... data.results[0].incorrect_answers,data.results[0].correct_answer]))
-                setQuestion(data.results[0].question)
-   
-                setAnswer(data.results[0].correct_answer)
-                setGivenAnswer("")
-                console.log(data.results[0].correct_answer)
-        
-            })
-        }
-        )
+        let questionInfo = await GetQuestionInfo()
+        setQuestion(questionInfo.question)
+        setCorrectAnswer(questionInfo.correctAnswer)
+        console.log(questionInfo.correctAnswer)
+        setAllAnswers(questionInfo.allAnswers)
+        setResultMessage("")
+        setGivenAnswer("")
+ 
     }
 
 
@@ -58,46 +52,35 @@ export function SoloPlay() {
 
 
 
-    function updateHighScore() {
-            let data = { highScore: score, username: user.username}
-            fetch('/api/authenticationauthorization', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            }).then(res => {
-                res.json().then(json => {console.log(json)})
-            })
-        }
+ 
     
     function onSubmit(e) {
         e.preventDefault();
-        if (givenAnswer == answer) {//Notify user is correct before moving onto next question
+        if (givenAnswer == correctAnswer) {//Notify user is correct before moving onto next question
             setResultMessage("Correct! New question is loading...")
             setResultStyle({ color: "green" })
-            setScore(prevScore => prevScore + 1)
+            setCurrentScore(prevScore => prevScore + 1)
             setTimeout(() => {
                 createQuestion();
                 setResultMessage("");
-            }, 3000);
+            }, 2000);
         }
         else { 
             setResultMessage("Incorrect!")
             setTimeout(() => {
-                if (score > user.highScore) {
-                    updateHighScore();
-                    setResultMessage("You have reached the end of your solo play. Your new high score is " + score+".")
+                if (currentScore > user.highScore) {
+                    UpdateHighScore(currentScore);
+                    setResultMessage("You have reached the end of your solo play. Your new high score is " + currentScore+".")
                 }
                 else {
                     setResultMessage("You have reached the end of your solo play.")
                 }
              
                 setEnd(true)
-            }, 3000)
+            }, 2000)
             setTimeout(() => {
-                setScore(0)
-            },4000)
+                setCurrentScore(0)
+            },2050)
             console.log("wrong answer")
         setResultStyle({ color: "red" })
             
@@ -107,8 +90,8 @@ export function SoloPlay() {
 
 
     window.addEventListener('popstate', function (event) {
-        if (score > user.highScore) {
-            updateHighScore()
+        if (currentScore > user.highScore) {
+            UpdateHighScore(currentScore, user.username)
         }
 
     }, false);
@@ -118,7 +101,7 @@ export function SoloPlay() {
     return (
         <body style={{marginTop:"auto",marginBottom:"auto"}}>
             
-            <div>Current Score: {score}</div>
+            <div>Current Score: {currentScore}</div>
           
             <div style={resultStyle}>{resultMessage}</div>
             { !end ?

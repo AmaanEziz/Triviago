@@ -22,16 +22,32 @@ namespace Triviago.Controllers
         }
         // GET: api/<gameSessionsController>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<gameSession>>> GetGameSessions()
+        public JsonResult GetGameSessions()
         {
-            return await _db.GameSessions.ToListAsync();
+            try
+            {
+                List<gameSession> nonEmptySessions = _db.GameSessions.ToList();
+                return new JsonResult( nonEmptySessions.Where(session => session.participants.Count > 0));
+                //Sometimes, games with 0 players but still a host are leftover, above line filters them out
+            }
+            catch (Exception e)
+            {
+                return new JsonResult(e);
+            }
         }
 
         [HttpGet("{gameSID}")]
-        public gameSession GetGameSession(int gameSID)
+        public JsonResult GetGameSession(int gameSID)
         {
-            gameSession session = _db.GameSessions.SingleOrDefault(u => u.id == gameSID);
-            return session;
+            try
+            {
+                gameSession session = _db.GameSessions.SingleOrDefault(u => u.id == gameSID);
+                return new JsonResult(session);
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
         }
 
 
@@ -47,11 +63,7 @@ namespace Triviago.Controllers
             return new JsonResult(session);
         }
 
-        // PUT api/<gameSessionsController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
+
 
         // DELETE api/<gameSessionsController>/5
         [HttpDelete("{gameSID}")]

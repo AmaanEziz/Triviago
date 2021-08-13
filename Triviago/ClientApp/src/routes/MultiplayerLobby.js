@@ -1,21 +1,16 @@
 ﻿import React, { useEffect, useState } from 'react'
-import 'whatwg-fetch'
 import { useHistory } from "react-router-dom";
-import { useCookies } from 'react-cookie';
 import {Table, Button} from 'react-bootstrap'
+import { GetAllSessions } from '../CrudFunctions/Read/GetAllSessions';
 export function MultiplayerLobby() {
     const [gameSessions, setGameSessions] = useState([])
     const history = useHistory();
 
     useEffect( () => {
-        fetch("/api/gamesessions").then(res => {// get the list of current game sessions
-            console.log(res)
-            res.json().then(sessionsArr => {
-                console.log(sessionsArr)
-                setGameSessions(sessionsArr)
-            })
-            
-        })
+        async function setGameSessionsState() {
+            setGameSessions(await GetAllSessions())
+        }
+        setGameSessionsState()
     }, [])
 
     return (
@@ -33,7 +28,7 @@ export function MultiplayerLobby() {
                 </thead>
                 <tbody>
                     {gameSessions.map(session => (
-                     
+                   
                         <tr style={{ textAlign: "center" }}>
                             <td>{session.id}</td>
                             <td>{session.host}</td>
