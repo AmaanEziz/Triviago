@@ -23,7 +23,8 @@ namespace Triviago.Controllers
  
         // DELETE api/<userSessionsController>/5
         [HttpDelete]
-        public StatusCodeResult Delete(int id)
+        [Route("/DeleteUser")]
+        public StatusCodeResult Delete()
         {
             try
             {

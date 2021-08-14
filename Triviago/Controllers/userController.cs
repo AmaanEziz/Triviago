@@ -19,10 +19,12 @@ namespace Triviago.Controllers
     public class userController : ControllerBase
     {
         private readonly dbContext _db;
+        Hashing hash = new Hashing();
 
         public userController(dbContext db)
         {
             _db = db;
+        
         }
 
         public User getUser()
@@ -55,7 +57,8 @@ namespace Triviago.Controllers
         {
             try
             {
-
+                User currentUser = newUser;
+                currentUser.password = hash.HashPassword(currentUser.password);
                 _db.Users.Add(newUser);
                 _db.SaveChanges();
                 return Ok();
@@ -75,11 +78,10 @@ namespace Triviago.Controllers
         {
             try
             {
-                var foundUser = _db.Users.SingleOrDefault(u => u.username == user.username && u.password == user.password);
-
-                if (foundUser == null)
+                var foundUser = _db.Users.SingleOrDefault(u => u.username == user.username);
+                if (!hash.ValidatePassword(user.password, foundUser.password))
                 {
-                    return new JsonResult(null);//If credentials don't match a user, return null
+                    return new JsonResult(null);
                 }
 
                 userSessions newSession = new userSessions(user.username, foundUser.GetHashCode());

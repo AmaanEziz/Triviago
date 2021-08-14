@@ -15,8 +15,7 @@ export function Homepage() {
     async function logout() {
 
         let logoutRequest = await DeleteUserSession()
-
-
+ 
         if (logoutRequest.status == 200) {
             document.cookie = "SID=; expires=Thu, 18 Dec 2013 12:00:00 UTC; path=/"
             history.push('/login')
