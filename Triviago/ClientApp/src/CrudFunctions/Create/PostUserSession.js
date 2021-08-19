@@ -12,7 +12,6 @@ export async function PostUserSession(username, password) {
         body: JSON.stringify(data)
     })
  
-    let postedSession = await fetchResponse.json()
-  
-    return postedSession
+    console.log(fetchResponse)
+    return fetchResponse
 }

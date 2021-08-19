@@ -16,7 +16,9 @@ namespace Triviago
         public int highScore { get; set; }
 
         public int gamesWon { get; set; }
-   
 
+        public bool lockoutEnabled { get; set; }
+
+        public DateTime lockoutEndTime { get; set; }
     }
 }

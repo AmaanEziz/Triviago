@@ -18,6 +18,8 @@ namespace Project2
         public DbSet<User> Users { get; set; }
 
         public DbSet<gameSession> GameSessions { get; set; }
+
+        public DbSet<LoginAttempt> LoginAttempts { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<gameSession>().Property(p => p.participants)
