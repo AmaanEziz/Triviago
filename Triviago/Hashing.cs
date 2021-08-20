@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 
 namespace Triviago.Controllers
 {
-    public class Hashing
-    {
+	public class Hashing
+	{
 		public string GetRandomSalt()
 		{
 			return BCrypt.Net.BCrypt.GenerateSalt(12);

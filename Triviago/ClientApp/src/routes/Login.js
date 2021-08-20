@@ -11,13 +11,20 @@ export function Login() {
 
         e.preventDefault();
 
-       let postedUserSession = await PostUserSession(usernameRef.current.value, passwordRef.current.value)
-       if (postedUserSession == null) {
-           setErrorMessage("Invalid Credentials")
-       }
-       else {
-           history.push('/')
-       }
+        let postedUserSession = await PostUserSession(usernameRef.current.value, passwordRef.current.value)
+        if (postedUserSession.status == 200) {
+            history.push('/')
+        }
+        else if (postedUserSession.status == 400) {
+            setErrorMessage("Invalid Credentials. Please try again.")
+        }
+        else if (postedUserSession.status == 404) {
+            setErrorMessage("User does not exist")
+        }
+        else {
+            setErrorMessage("You are currently locked out.")
+        }
+  
 
 
 

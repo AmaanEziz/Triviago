@@ -24,7 +24,7 @@ namespace Triviago.Controllers
         public userController(dbContext db)
         {
             _db = db;
-        
+
         }
 
         public User getUser()
@@ -42,7 +42,30 @@ namespace Triviago.Controllers
                 return null;
             }
         }
-       
+
+        public void addLoginAttempt(string username, bool success)
+        {
+            LoginAttempt attempt = new LoginAttempt(username, DateTime.Now, success);
+            _db.LoginAttempts.Add(attempt);
+            _db.SaveChanges();
+        }
+
+
+        public bool shouldLockout(string username)
+        {
+            List<LoginAttempt> attempts = _db.LoginAttempts.Where(attempt => attempt.username == username && DateTime.Compare(attempt.loginTime, DateTime.Now.AddMinutes(-5)) > 0).ToList();
+            if (attempts.Count >= 3)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public void lockoutUser(User currentUser)
+        {
+            currentUser.lockoutEndTime = DateTime.Now.AddMinutes(5);
+            _db.SaveChanges();
+        }
         // GET api/<userController>/5
         [HttpGet]
         public JsonResult Get() // Get a given user by using the SID stored in cookies to locate the session and user
@@ -59,6 +82,7 @@ namespace Triviago.Controllers
             {
                 User currentUser = newUser;
                 currentUser.password = hash.HashPassword(currentUser.password);
+
                 _db.Users.Add(newUser);
                 _db.SaveChanges();
                 return Ok();
@@ -74,14 +98,29 @@ namespace Triviago.Controllers
 
         [HttpPost]
         [Route("[action]")]
-        public JsonResult LoginRequest(User user)//Locate user with given credentials and create a new session for them
+        public StatusCodeResult LoginRequest(User user)
         {
+            string username = user.username;
             try
             {
-                var foundUser = _db.Users.SingleOrDefault(u => u.username == user.username);
+                User foundUser = _db.Users.SingleOrDefault(u => u.username == username);
+
+                if (DateTime.Compare(DateTime.Now, foundUser.lockoutEndTime) < 0)
+                {
+                    return new ConflictResult();
+                }
+
+
                 if (!hash.ValidatePassword(user.password, foundUser.password))
                 {
-                    return new JsonResult(null);
+                    addLoginAttempt(username, false);
+                    if (shouldLockout(username))
+                    {
+                        lockoutUser(foundUser);
+                    }
+                    //make a function to Check if 2 or more failed login attempts occured in the
+                    //last 5 minutes. If so, set lockoutEndTime to 15 minutes
+                    return new BadRequestResult();
                 }
 
                 userSessions newSession = new userSessions(user.username, foundUser.GetHashCode());
@@ -91,11 +130,11 @@ namespace Triviago.Controllers
                 option.Expires = DateTime.Now.AddHours(1);
                 option.HttpOnly = true;
                 Response.Cookies.Append("SID", newSession.SID.ToString(), option);
-                return new JsonResult("Success");
+                return Ok();
             }
             catch (Exception e)
             {
-                return new JsonResult(null);
+                return new NotFoundResult();
             }
         }
 
@@ -114,7 +153,7 @@ namespace Triviago.Controllers
             {
                 return new JsonResult(null);
             }
-           
+
         }
 
 
